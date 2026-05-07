@@ -1,0 +1,25 @@
+{
+  "name": "aiport-local-agent",
+  "version": "1.0.0",
+  "private": true,
+  "author": "Sale Habtamu <saleamlak.7h@gmail.com>",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index",
+    "prod": "node dist/index",
+    "build": "tsc -p tsconfig.prod.json",
+    "test": "vitest",
+    "format": "prettier --write"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "prettier": "3.8.3",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}
