@@ -14,8 +14,13 @@
  */
 
 import fs from 'fs/promises';
-import path from 'path';
-import { ReaderError } from '../core/errors/errors.js';
+import {
+  assertValidNumber,
+  resolveSafePath,
+  validateLineIndex,
+  validateRangeBounds,
+  validateRangeShape,
+} from './utils/validate.js';
 
 export type WriterOperation = 'insert' | 'overwrite' | 'delete';
 
@@ -38,11 +43,11 @@ export async function insertLines(
   line: number,
   content: string[],
 ): Promise<WriteResult> {
-  const absPath = resolvePath(filePath);
+  const absPath = resolveSafePath(filePath);
 
   const lines = await readLines(absPath);
 
-  validateLine(line, lines.length + 1);
+  validateLineIndex(line, lines.length + 1);
 
   const newLines = [...lines.slice(0, line - 1), ...content, ...lines.slice(line - 1)];
 
@@ -65,11 +70,14 @@ export async function overwriteLines(
   end: number,
   content: string[],
 ): Promise<WriteResult> {
-  const absPath = resolvePath(filePath);
+  const absPath = resolveSafePath(filePath);
 
   const lines = await readLines(absPath);
 
-  validateRange(start, end, lines.length);
+  assertValidNumber(start, 'start');
+  assertValidNumber(end, 'end');
+  validateRangeShape(start, end);
+  validateRangeBounds(end, lines.length);
 
   const newLines = [...lines.slice(0, start - 1), ...content, ...lines.slice(end)];
 
@@ -91,11 +99,14 @@ export async function deleteLines(
   start: number,
   end: number,
 ): Promise<WriteResult> {
-  const absPath = resolvePath(filePath);
+  const absPath = resolveSafePath(filePath);
 
   const lines = await readLines(absPath);
 
-  validateRange(start, end, lines.length);
+  assertValidNumber(start, 'start');
+  assertValidNumber(end, 'end');
+  validateRangeShape(start, end);
+  validateRangeBounds(end, lines.length);
 
   const newLines = [...lines.slice(0, start - 1), ...lines.slice(end)];
 
@@ -120,26 +131,6 @@ async function readLines(filePath: string): Promise<string[]> {
 
 async function writeLines(filePath: string, lines: string[]) {
   await fs.writeFile(filePath, lines.join('\n'), 'utf-8');
-}
-
-function resolvePath(filePath: string): string {
-  if (!filePath) {
-    throw new ReaderError('INVALID_PATH', 'File path is required');
-  }
-
-  return path.resolve(filePath);
-}
-
-function validateLine(line: number, max: number) {
-  if (line < 1 || line > max) {
-    throw new ReaderError('INVALID_LINE', `Line ${line} is out of bounds (1-${max})`);
-  }
-}
-
-function validateRange(start: number, end: number, max: number) {
-  if (start < 1 || end < 1 || start > end || end > max) {
-    throw new ReaderError('INVALID_RANGE', `Invalid range ${start}-${end} (1-${max})`);
-  }
 }
 
 function range(start: number, end: number): number[] {

@@ -15,9 +15,9 @@
  */
 
 import fs from 'fs/promises';
-import path from 'path';
 import { getFileAST } from '../ast/parser.js';
 import { ReaderError } from '../core/errors/errors.js';
+import { assertValidNumber, resolveSafePath, validateRangeShape } from './utils/validate.js';
 
 export type ReadSource = 'ast' | 'range' | 'full';
 
@@ -33,7 +33,7 @@ export interface ReadResult {
  * Read code from a file using AST node name (function/class)
  */
 export async function readCodeFromASTNode(filePath: string, nodeName: string): Promise<ReadResult> {
-  const absPath = resolvePath(filePath);
+  const absPath = resolveSafePath(filePath);
   const ast = await getFileAST(absPath);
 
   const node = ast.nodes.find(
@@ -63,9 +63,11 @@ export async function readCodeByLineRange(
   start: number,
   end: number,
 ): Promise<ReadResult> {
-  const absPath = resolvePath(filePath);
+  const absPath = resolveSafePath(filePath);
 
-  validateLineRange(start, end);
+  assertValidNumber(start, 'start');
+  assertValidNumber(end, 'end');
+  validateRangeShape(start, end);
 
   const content = await readFileLines(absPath, start, end);
 
@@ -82,7 +84,7 @@ export async function readCodeByLineRange(
  * Read full file
  */
 export async function readFullFile(filePath: string): Promise<ReadResult> {
-  const absPath = resolvePath(filePath);
+  const absPath = resolveSafePath(filePath);
 
   const content = await fs.readFile(absPath, 'utf-8');
 
@@ -96,24 +98,6 @@ export async function readFullFile(filePath: string): Promise<ReadResult> {
 /* -------------------------
    Internal helpers
 -------------------------- */
-
-function resolvePath(filePath: string): string {
-  if (!filePath) {
-    throw new ReaderError('INVALID_PATH', 'File path is required');
-  }
-
-  return path.resolve(filePath);
-}
-
-function validateLineRange(start: number, end: number) {
-  if (typeof start !== 'number' || typeof end !== 'number') {
-    throw new ReaderError('INVALID_RANGE', 'Start and end must be numbers');
-  }
-
-  if (start < 1 || end < 1 || end < start) {
-    throw new ReaderError('INVALID_RANGE', `Invalid line range: ${start}-${end}`);
-  }
-}
 
 /**
  * Reads file and returns specific line slice (1-based indexing)

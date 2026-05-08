@@ -4,7 +4,7 @@ import path from 'path';
 
 import { insertLines, overwriteLines, deleteLines } from '../writer.js';
 
-const tmpFile = path.join(__dirname, 'tmp.writer.test.ts');
+const tmpFile = path.join(__dirname, 'tmp.writer.ts');
 
 const initialContent = `line1
 line2
