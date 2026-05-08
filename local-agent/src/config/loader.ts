@@ -19,7 +19,7 @@ export function loadConfig(projectRoot: string = process.cwd()): LoadedConfig {
   const configPath = path.join(projectRoot, 'aiport.config.json');
 
   if (!fs.existsSync(configPath)) {
-    throw new ConfigError('CONFIG_NOT_FOUND', 'airport.config.json not found in project root');
+    throw new ConfigError('CONFIG_NOT_FOUND', 'aiport.config.json not found in project root');
   }
 
   const raw = fs.readFileSync(configPath, 'utf-8');
