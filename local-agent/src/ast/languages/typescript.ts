@@ -47,8 +47,34 @@ export function parse(filePath: string, code: string): ASTNode[] {
   });
 
   source.getImportDeclarations().forEach((imp) => {
+    const defaultImport = imp.getDefaultImport()?.getText();
+    const namespaceImport = imp.getNamespaceImport()?.getText();
+    const namedImports = imp.getNamedImports().map((n) => {
+      const name = n.getName();
+      const aliasNode = n.getAliasNode()?.getText();
+
+      const item: { name: string; alias?: string } = {
+        name,
+      };
+
+      if (aliasNode) {
+        item.alias = aliasNode;
+      }
+
+      return item;
+    });
+
+    const isSideEffectOnly = !defaultImport && !namespaceImport && namedImports.length === 0;
+
     nodes.push({
       type: 'import',
+      source: imp.getModuleSpecifierValue(),
+
+      ...(defaultImport && { defaultImport }),
+      ...(namespaceImport && { namespaceImport }),
+      ...(namedImports.length > 0 && { namedImports }),
+      ...(isSideEffectOnly && { sideEffectOnly: true }),
+
       start: imp.getStart(),
       end: imp.getEnd(),
     });

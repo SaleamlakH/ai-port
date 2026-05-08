@@ -12,12 +12,37 @@
 
 export type ASTNodeType = 'function' | 'class' | 'import' | 'export';
 
-export type ASTNode = {
-  type: ASTNodeType;
-  name?: string;
-  start: number;
-  end: number;
-};
+export type ASTNode =
+  | {
+      type: 'function';
+      name?: string;
+      start: number;
+      end: number;
+    }
+  | {
+      type: 'class';
+      name?: string;
+      start: number;
+      end: number;
+    }
+  | {
+      type: 'import';
+      source: string;
+      defaultImport?: string;
+      namespaceImport?: string;
+      namedImports?: Array<{
+        name: string;
+        alias?: string;
+      }>;
+      sideEffectOnly?: boolean;
+      start: number;
+      end: number;
+    }
+  | {
+      type: 'export';
+      start: number;
+      end: number;
+    };
 
 export type ASTFile = {
   path: string;

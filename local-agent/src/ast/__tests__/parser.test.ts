@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { getFileAST } from '../parser.js';
 
 const file = path.join(__dirname, 'sample.ts');
@@ -14,6 +14,10 @@ export function hello() {}
 class Test {}
 `,
 );
+
+afterAll(() => {
+  fs.rmSync(file, { force: true });
+});
 
 describe('AST parser', () => {
   it('parses TS file', async () => {
