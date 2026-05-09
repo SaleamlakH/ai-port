@@ -1,0 +1,45 @@
+{
+  "name": "aiport-mcp-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aiport hosted MCP server — bridges AI chat to local agent over SSE",
+  "author": "Sale Habtamu <saleamlak.7h@gmail.com>",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.prod.json",
+    "prod": "node dist/src/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:prod": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "format": "prettier --write"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.2",
+    "@types/pg": "^8.20.0",
+    "prettier": "3.8.3",
+    "prisma": "^7.8.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "@prisma/dev": {
+      "@hono/node-server": ">=2.0.0"
+    }
+  }
+}
