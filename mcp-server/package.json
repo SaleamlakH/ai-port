@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:prod": "prisma migrate deploy",
     "db:studio": "prisma studio",
+    "mcp:inspect": "npx @modelcontextprotocol/inspector",
     "format": "prettier --write"
   },
   "dependencies": {
@@ -25,9 +26,11 @@
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@modelcontextprotocol/inspector": "^0.21.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.6",
     "@types/node": "^25.6.2",
