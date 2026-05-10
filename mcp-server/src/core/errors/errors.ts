@@ -55,3 +55,9 @@ export class PatchApplicationError extends AiportError {
     super('PATCH_FAILED', 'Failed to apply patch — file may have changed since AST was read');
   }
 }
+
+export class InvalidSessionIdError extends AiportError {
+  constructor() {
+    super('INVALID_SESSION_ID', 'Invalid or missing session ID');
+  }
+}
