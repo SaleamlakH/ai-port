@@ -9,6 +9,8 @@
 import { InvalidApiKeyError, RevokedApiKeyError } from '../../core/errors/errors.js';
 import type { ApiKeyRepository } from '../../core/types/db.js';
 
+export type AuthService = ReturnType<typeof createAuthService>;
+
 export const createAuthService = (apiKeyRepo: ApiKeyRepository) => {
   const validateApiKey = async (keyHash: string) => {
     const apiKey = await apiKeyRepo.findByKeyHash(keyHash);

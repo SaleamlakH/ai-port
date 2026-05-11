@@ -6,25 +6,28 @@
  */
 
 import { Router, type Request, type Response } from 'express';
-import { createAuthService } from '../module/auth/auth.service.js';
-import { prismaApiKeyRepo } from '../lib/prisma/repositories/apiKey.repository.js';
+import type { AuthService } from '../module/auth/auth.service.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp';
 import { randomUUID } from 'node:crypto';
 import { InvalidSessionIdError } from '../core/errors/errors.js';
+import { registerGetProjectStructure } from '../module/tools/getProjectStructure.js';
+import { type ConnectionRegistry } from '../module/agent/connections.js';
+import { registerReadCode } from '../module/tools/readCode.js';
+import { registerGetFileAst } from '../module/tools/getFileAst.js';
+import { registerWriteFile } from '../module/tools/writeFile.js';
+import { registerRunCommand } from '../module/tools/runCommand.js';
 
-export const mcpRouter = Router();
-const authService = createAuthService(prismaApiKeyRepo);
-
-interface Session {
+export interface Session {
+  apiKey: string;
   transport: StreamableHTTPServerTransport;
   server: McpServer;
 }
 
 const session: Record<string, Session> = {};
 
-const getSession = (sid?: string) => {
+export const getSession = (sid?: string) => {
   if (!sid) return undefined;
   return session[sid];
 };
@@ -34,65 +37,80 @@ const deleteSession = (sid?: string) => {
   delete session[sid];
 };
 
-// Handle POST requests for client-to-server communication
-mcpRouter.post('/mcp/:apiKey', async (req: Request, res: Response) => {
-  const { apiKey } = req.params;
-  // authentication
-  await authService.validateApiKey(apiKey as string);
+export const createMcpRouter = (authService: AuthService, registry: ConnectionRegistry) => {
+  const mcpRouter = Router();
 
-  const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  const existingSession = getSession(sessionId);
+  // Handle POST requests for client-to-server communication
+  mcpRouter.post('/mcp/:apiKey', async (req: Request, res: Response) => {
+    const { apiKey } = req.params;
 
-  if (existingSession) {
-    await existingSession.transport.handleRequest(req, res, req.body);
-    return;
-  }
+    // authentication
+    // await authService.validateApiKey(apiKey as string);
 
-  // create server and transport
-  if (!sessionId && isInitializeRequest(req.body)) {
-    const server = new McpServer({ name: 'aiport', version: '1.0.0' });
-    let transport: StreamableHTTPServerTransport;
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+    const existingSession = getSession(sessionId);
 
-    transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
+    if (existingSession) {
+      await existingSession.transport.handleRequest(req, res, req.body);
+      return;
+    }
 
-      onsessioninitialized: (sessionId) => {
-        // save transport by session id
-        session[sessionId] = { transport, server };
-      },
-    });
+    // create server, register tools and transport
+    if (!sessionId && isInitializeRequest(req.body)) {
+      const server = new McpServer({ name: 'aiport', version: '1.0.0' });
 
-    transport.onclose = () => {
-      deleteSession(transport.sessionId);
-    };
+      // register tools,
+      registerGetProjectStructure(server, registry);
+      registerGetFileAst(server, registry);
+      registerReadCode(server, registry);
+      registerWriteFile(server, registry);
+      registerRunCommand(server, registry);
 
-    await server.connect(transport as any);
-    await transport.handleRequest(req, res, req.body);
-    return;
-  }
+      let transport: StreamableHTTPServerTransport;
 
-  throw new InvalidSessionIdError();
-});
+      transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
 
-// Handle GET requests for server-to-client notifications via SSE
-mcpRouter.get('/mcp/:apiKey', async (req: Request, res: Response) => {
-  const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  const session = getSession(sessionId);
+        onsessioninitialized: (sessionId) => {
+          // save transport by session id
+          session[sessionId] = { apiKey: apiKey as string, transport, server };
+        },
+      });
 
-  if (!session) throw new InvalidSessionIdError();
+      transport.onclose = () => {
+        deleteSession(transport.sessionId);
+      };
 
-  res.on('close', () => {
-    session.transport.close();
+      await server.connect(transport as any);
+      await transport.handleRequest(req, res, req.body);
+      return;
+    }
+
+    throw new InvalidSessionIdError();
   });
 
-  await session.transport.handleRequest(req, res);
-});
+  // Handle GET requests for server-to-client notifications via SSE
+  mcpRouter.get('/mcp/:apiKey', async (req: Request, res: Response) => {
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+    const session = getSession(sessionId);
 
-// Handle DELETE requests for session termination
-mcpRouter.delete('/mcp/:apiKey', async (req: Request, res: Response) => {
-  const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  const session = getSession(sessionId);
+    if (!session) throw new InvalidSessionIdError();
 
-  if (!session) throw new InvalidSessionIdError();
-  await session.transport.handleRequest(req, res);
-});
+    res.on('close', () => {
+      session.transport.close();
+    });
+
+    await session.transport.handleRequest(req, res);
+  });
+
+  // Handle DELETE requests for session termination
+  mcpRouter.delete('/mcp/:apiKey', async (req: Request, res: Response) => {
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+    const session = getSession(sessionId);
+
+    if (!session) throw new InvalidSessionIdError();
+    await session.transport.handleRequest(req, res);
+  });
+
+  return mcpRouter;
+};

@@ -4,16 +4,24 @@
  */
 
 import express, { type NextFunction, type Request, type Response } from 'express';
-import { mcpRouter } from './routes/mcp.js';
 import {
   InvalidApiKeyError,
   InvalidSessionIdError,
   RevokedApiKeyError,
 } from './core/errors/errors.js';
+import { createAuthService } from './module/auth/auth.service.js';
+import { prismaApiKeyRepo } from './lib/prisma/repositories/apiKey.repository.js';
+import { createMcpRouter } from './routes/mcp.js';
+import { createConnectionRegistry } from './module/agent/connections.js';
 
 export const app = express();
 app.use(express.json());
-app.use(mcpRouter);
+
+const authService = createAuthService(prismaApiKeyRepo);
+const agentRegistry = createConnectionRegistry();
+
+// register routs
+app.use(createMcpRouter(authService, agentRegistry));
 
 // global error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
