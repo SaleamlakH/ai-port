@@ -31,6 +31,12 @@ export class MissingApiKeyError extends ConfigError {
   }
 }
 
+export class MissingMcpServerUrl extends ConfigError {
+  constructor() {
+    super('MISSING_MCP_SERVER_URL', 'AIPORT_MCP_SERVER_URL not found in .env');
+  }
+}
+
 export class MissingLanguageError extends ConfigError {
   constructor() {
     super('MISSING_LANGUAGE', 'language is missing in aiport.config.json');

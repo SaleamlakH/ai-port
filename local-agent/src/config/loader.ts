@@ -7,6 +7,7 @@ import {
   InvalidJsonError,
   MissingApiKeyError,
   MissingLanguageError,
+  MissingMcpServerUrl,
   UnsupportedLanguageError,
 } from '../core/errors/errors.js';
 
@@ -20,6 +21,7 @@ export interface AiportConfig {
 export interface LoadedConfig {
   config: AiportConfig;
   apiKey: string;
+  mcpServerUrl: string;
 }
 
 export function loadConfig(projectRoot: string = process.cwd()): LoadedConfig {
@@ -42,11 +44,14 @@ export function loadConfig(projectRoot: string = process.cwd()): LoadedConfig {
   // load .env
   dotenv.config({ path: path.join(projectRoot, '.env') });
   const apiKey = process.env.AIPORT_API_KEY;
+  const mcpServerUrl = process.env.AIPORT_MCP_SERVER_URL;
 
   if (!apiKey) throw new MissingApiKeyError();
+  if (!mcpServerUrl) throw new MissingMcpServerUrl();
 
   return {
     apiKey,
+    mcpServerUrl,
     config: parsed,
   };
 }
