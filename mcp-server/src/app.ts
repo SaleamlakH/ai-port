@@ -18,7 +18,7 @@ export const app = express();
 app.use(express.json());
 
 const authService = createAuthService(prismaApiKeyRepo);
-const agentRegistry = createConnectionRegistry();
+export const agentRegistry = createConnectionRegistry();
 
 // register routs
 app.use(createMcpRouter(authService, agentRegistry));
