@@ -8,6 +8,18 @@ class AiportError extends Error {
   }
 }
 
+export class DeveloperNotFoundError extends AiportError {
+  constructor() {
+    super('DEVELOPER_NOT_FOUND', 'Invalid email or password');
+  }
+}
+
+export class DeveloperAlreadyExist extends AiportError {
+  constructor() {
+    super('DEVELOPER_ALREADY_EXISTS', 'Email already exist');
+  }
+}
+
 export class InvalidApiKeyError extends AiportError {
   constructor() {
     super('AUTH_INVALID_KEY', 'API key is invalid or missing');
