@@ -8,9 +8,9 @@ import { prisma } from '../prisma.js';
 import type { DeveloperRepository } from '../../../core/types/db.js';
 
 export const prismaDeveloperRepo: DeveloperRepository = {
-  create(email: string) {
+  create(email: string, password: string) {
     return prisma.developer.create({
-      data: { email },
+      data: { email, password },
     });
   },
 

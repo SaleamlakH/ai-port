@@ -1,12 +1,13 @@
 export interface Developer {
   id: string;
   email: string;
+  password: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface DeveloperRepository {
-  create(email: string): Promise<Developer>;
+  create(email: string, password: string): Promise<Developer>;
   findByEmail(email: string): Promise<Developer | null>;
 }
 

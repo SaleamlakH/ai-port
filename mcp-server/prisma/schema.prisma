@@ -15,6 +15,7 @@ datasource db {
 model Developer {
   id        String   @id @default(ulid())
   email     String   @unique
+  password  String
   apiKeys   ApiKey[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
