@@ -16,7 +16,7 @@ export const prismaApiKeyRepo: ApiKeyRepository = {
   },
 
   findByKeyHash(keyHash: string) {
-    return prisma.apiKey.findFirst({
+    return prisma.apiKey.findUnique({
       where: { keyHash },
     });
   },
