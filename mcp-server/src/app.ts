@@ -10,7 +10,10 @@ import {
   InvalidSessionIdError,
   RevokedApiKeyError,
 } from './core/errors/errors.js';
+import { createAuthService } from './module/auth/auth.service.js';
 import { createConnectionRegistry } from './module/agent/connections.js';
+import { createAuthRouter } from './module/auth/auth.route.js';
+import { prismaDeveloperRepo } from './lib/prisma/repositories/developer.repository.js';
 import { createMcpService } from './module/mcp/mcp.service.js';
 import { createInMemorySessionStore } from './module/mcp/mcp.session.js';
 import { createMcpRouter } from './module/mcp/mcp.route.js';
@@ -21,6 +24,8 @@ app.use(express.json());
 
 export const agentRegistry = createConnectionRegistry();
 
+const authService = createAuthService(prismaDeveloperRepo);
+
 // mcp server routes
 const inMemorySession = createInMemorySessionStore();
 const mcpService = createMcpService(inMemorySession, agentRegistry);
@@ -28,6 +33,7 @@ const mcpController = createMcpController(mcpService, inMemorySession);
 
 // register routs
 app.use(createMcpRouter(mcpController));
+app.use(createAuthRouter(authService));
 
 // global error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

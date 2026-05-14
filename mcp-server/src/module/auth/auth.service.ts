@@ -6,20 +6,31 @@
  * keeping this service testable without a real database.
  */
 
-import { InvalidApiKeyError, RevokedApiKeyError } from '../../core/errors/errors.js';
-import type { ApiKeyRepository } from '../../core/types/db.js';
+import { DeveloperNotFoundError } from '../../core/errors/errors.js';
+import { comparePassword } from '../../lib/bcrypt.js';
+import type { DeveloperRepository } from '../../core/types/db.js';
+import { signJwt } from '../../lib/joseJwt.js';
 
-export type AuthService = ReturnType<typeof createAuthService>;
+export const createAuthService = (developerRepo: DeveloperRepository) => {
+  const login = async (email: string, password: string) => {
+    const developer = await developerRepo.findByEmail(email);
+    if (!developer) throw new DeveloperNotFoundError();
 
-export const createAuthService = (apiKeyRepo: ApiKeyRepository) => {
-  const validateApiKey = async (keyHash: string) => {
-    const apiKey = await apiKeyRepo.findByKeyHash(keyHash);
+    // compare password
+    const { password: hashedPassword, ...safeDeveloper } = developer;
+    const match = comparePassword(password, hashedPassword);
 
-    if (!apiKey) throw new InvalidApiKeyError();
-    if (apiKey.revokedAt !== null) throw new RevokedApiKeyError();
+    if (!match) throw new DeveloperNotFoundError();
 
-    return apiKey;
+    return signJwt(safeDeveloper);
   };
 
-  return { validateApiKey };
+  const signup = async (email: string, password: string) => {
+    const developer = await developerRepo.create(email, password);
+    const { password: hashedPassword, ...safeDeveloper } = developer;
+
+    return signJwt(safeDeveloper);
+  };
+
+  return { login, signup };
 };
