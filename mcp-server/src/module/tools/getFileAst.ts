@@ -7,14 +7,18 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import type { ConnectionRegistry } from '../agent/connections.js';
 import z from 'zod';
-import { getSession } from '../../routes/mcp.js';
 import {
   AgentNotConnectedError,
   InvalidApiKeyError,
   InvalidSessionIdError,
 } from '../../core/errors/errors.js';
+import type { SessionStore } from '../mcp/mcp.session.js';
 
-export const registerGetFileAst = (server: McpServer, agentRegistry: ConnectionRegistry) => {
+export const registerGetFileAst = (
+  server: McpServer,
+  agentRegistry: ConnectionRegistry,
+  sessionStore: SessionStore,
+) => {
   server.registerTool(
     'get_file_ast',
     {
@@ -25,8 +29,9 @@ export const registerGetFileAst = (server: McpServer, agentRegistry: ConnectionR
         filePath: z.string().min(1),
       },
     },
+
     async ({ filePath }, context) => {
-      const session = getSession(context.sessionId);
+      const session = sessionStore.get(context.sessionId);
       if (!session) throw new InvalidSessionIdError();
 
       const apiKey = session.apiKey;

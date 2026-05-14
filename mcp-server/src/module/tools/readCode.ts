@@ -7,14 +7,18 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
 import type { ConnectionRegistry } from '../agent/connections.js';
 import z from 'zod';
-import { getSession } from '../../routes/mcp.js';
 import {
   AgentNotConnectedError,
   InvalidApiKeyError,
   InvalidSessionIdError,
 } from '../../core/errors/errors.js';
+import type { SessionStore } from '../mcp/mcp.session.js';
 
-export const registerReadCode = (server: McpServer, agentRegistry: ConnectionRegistry) => {
+export const registerReadCode = (
+  server: McpServer,
+  agentRegistry: ConnectionRegistry,
+  sessionStore: SessionStore,
+) => {
   server.registerTool(
     'read_code',
     {
@@ -28,7 +32,7 @@ export const registerReadCode = (server: McpServer, agentRegistry: ConnectionReg
       },
     },
     async (params, context) => {
-      const session = getSession(context.sessionId);
+      const session = sessionStore.get(context.sessionId);
       if (!session) throw new InvalidSessionIdError();
 
       const apiKey = session.apiKey;

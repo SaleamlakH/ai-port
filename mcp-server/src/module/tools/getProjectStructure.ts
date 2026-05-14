@@ -12,9 +12,13 @@ import {
   InvalidApiKeyError,
   InvalidSessionIdError,
 } from '../../core/errors/errors.js';
-import { getSession } from '../../routes/mcp.js';
+import type { SessionStore } from '../mcp/mcp.session.js';
 
-export const registerGetProjectStructure = (server: McpServer, registry: ConnectionRegistry) => {
+export const registerGetProjectStructure = (
+  server: McpServer,
+  registry: ConnectionRegistry,
+  sessionStore: SessionStore,
+) => {
   server.registerTool(
     'get_project_structure',
     {
@@ -23,7 +27,7 @@ export const registerGetProjectStructure = (server: McpServer, registry: Connect
         'Returns a structured node graph of the project directory tree — folders, and files. Call this first to understand the project layout before requesting any file AST or source code.',
     },
     async (context) => {
-      const session = getSession(context.sessionId);
+      const session = sessionStore.get(context.sessionId);
       if (!session) throw new InvalidSessionIdError();
 
       const apiKey = session.apiKey;

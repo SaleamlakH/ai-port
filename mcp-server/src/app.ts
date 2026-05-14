@@ -5,23 +5,29 @@
 
 import express, { type NextFunction, type Request, type Response } from 'express';
 import {
+  DeveloperNotFoundError,
   InvalidApiKeyError,
   InvalidSessionIdError,
   RevokedApiKeyError,
 } from './core/errors/errors.js';
-import { createAuthService } from './module/auth/auth.service.js';
-import { prismaApiKeyRepo } from './lib/prisma/repositories/apiKey.repository.js';
-import { createMcpRouter } from './routes/mcp.js';
 import { createConnectionRegistry } from './module/agent/connections.js';
+import { createMcpService } from './module/mcp/mcp.service.js';
+import { createInMemorySessionStore } from './module/mcp/mcp.session.js';
+import { createMcpRouter } from './module/mcp/mcp.route.js';
+import { createMcpController } from './module/mcp/mcp.controller.js';
 
 export const app = express();
 app.use(express.json());
 
-const authService = createAuthService(prismaApiKeyRepo);
 export const agentRegistry = createConnectionRegistry();
 
+// mcp server routes
+const inMemorySession = createInMemorySessionStore();
+const mcpService = createMcpService(inMemorySession, agentRegistry);
+const mcpController = createMcpController(mcpService, inMemorySession);
+
 // register routs
-app.use(createMcpRouter(authService, agentRegistry));
+app.use(createMcpRouter(mcpController));
 
 // global error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
@@ -45,6 +51,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
       },
       id: null,
     });
+  }
+
+  if (err instanceof DeveloperNotFoundError) {
+    return res.status(400).json({ error: { code: err.code, message: err.message } });
   }
 
   res.status(500).json({
