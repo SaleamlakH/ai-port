@@ -50,7 +50,7 @@ describe('apiKey.controller', () => {
 
   describe('controller.revoke', () => {
     it('return 200 if revoked successfully', async () => {
-      const req: Partial<Request> = { body: { apiKey: { id: '1' } } };
+      const req: Partial<Request> = { body: { developer: { id: '1' }, apiKey: { id: '1' } } };
       const res: Partial<Response> = { status: vi.fn().mockReturnThis(), json: vi.fn() };
 
       vi.mocked(service.revoke).mockResolvedValue({ id: '1' } as ApiKey);

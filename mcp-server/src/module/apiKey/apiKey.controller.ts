@@ -1,6 +1,8 @@
 import type { Request, Response } from 'express';
 import type { ApiKeyService } from '../../core/types/db.js';
 
+export type ApiKeyController = ReturnType<typeof createApiKeyController>;
+
 export const createApiKeyController = (service: ApiKeyService) => {
   const generate = async (req: Request, res: Response) => {
     const apiKey = await service.generate(req.body.developerId, req.body.label);
@@ -8,7 +10,7 @@ export const createApiKeyController = (service: ApiKeyService) => {
   };
 
   const revoke = async (req: Request, res: Response) => {
-    await service.revoke(req.body.apiKey.id);
+    await service.revoke(req.body.developer.id, req.body.apiKey);
     res.status(200).json({ success: true });
   };
 
