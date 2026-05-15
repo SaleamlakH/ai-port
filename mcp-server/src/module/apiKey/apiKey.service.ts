@@ -1,8 +1,8 @@
 import { InvalidApiKeyError, RevokedApiKeyError } from '../../core/errors/errors.js';
-import type { ApiKeyRepository } from '../../core/types/db.js';
+import type { ApiKeyRepository, ApiKeyService } from '../../core/types/db.js';
 import { generateApiKey, hashApiKey } from '../../lib/crypto.js';
 
-export const createApiKeyService = (apiKeyRepo: ApiKeyRepository) => {
+export const createApiKeyService = (apiKeyRepo: ApiKeyRepository): ApiKeyService => {
   const generate = async (developerId: string, label: string) => {
     const rawKey = generateApiKey();
     const keyHash = hashApiKey(rawKey);
@@ -11,7 +11,8 @@ export const createApiKeyService = (apiKeyRepo: ApiKeyRepository) => {
     return rawKey;
   };
 
-  const findByKeyHash = async (keyHash: string) => {
+  const findByKeyHash = async (rawKey: string) => {
+    const keyHash = hashApiKey(rawKey);
     const apiKey = await apiKeyRepo.findByKeyHash(keyHash);
 
     if (!apiKey) throw new InvalidApiKeyError();

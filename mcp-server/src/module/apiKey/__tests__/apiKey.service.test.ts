@@ -68,22 +68,20 @@ describe('ApiKey service', () => {
     vi.mocked(generateApiKey).mockReturnValue('123456');
     await apiKeyService.generate('dev-id', 'test-key');
 
-    const key = await apiKeyService.findByKeyHash(hashApiKey('123456'));
+    const key = await apiKeyService.findByKeyHash('123456');
     expect(key.id).toBeDefined();
     expect(key.keyHash).toBe(hashApiKey('123456'));
   });
 
   it('throws error if not exist', async () => {
-    await expect(() => apiKeyService.findByKeyHash(hashApiKey('123456'))).rejects.toThrow(
-      InvalidApiKeyError,
-    );
+    await expect(() => apiKeyService.findByKeyHash('123456')).rejects.toThrow(InvalidApiKeyError);
   });
 
   it('revoked and return api key', async () => {
     vi.mocked(generateApiKey).mockReturnValue('123456');
     await apiKeyService.generate('dev-id', 'test-key');
 
-    const key = await apiKeyService.findByKeyHash(hashApiKey('123456'));
+    const key = await apiKeyService.findByKeyHash('123456');
     const revoked = await apiKeyService.revoke(key.id);
 
     expect(revoked.revokedAt).toBeDefined();
@@ -94,11 +92,9 @@ describe('ApiKey service', () => {
     vi.mocked(generateApiKey).mockReturnValue('123456');
     await apiKeyService.generate('dev-id', 'test-key');
 
-    const key = await apiKeyService.findByKeyHash(hashApiKey('123456'));
+    const key = await apiKeyService.findByKeyHash('123456');
     const revoked = await apiKeyService.revoke(key.id);
 
-    await expect(() => apiKeyService.findByKeyHash(hashApiKey('123456'))).rejects.toThrow(
-      RevokedApiKeyError,
-    );
+    await expect(() => apiKeyService.findByKeyHash('123456')).rejects.toThrow(RevokedApiKeyError);
   });
 });
