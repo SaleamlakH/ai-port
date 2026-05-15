@@ -1,5 +1,5 @@
 import { InvalidApiKeyError, RevokedApiKeyError } from '../../core/errors/errors.js';
-import type { ApiKeyRepository, ApiKeyService } from '../../core/types/db.js';
+import type { ApiKey, ApiKeyRepository, ApiKeyService } from '../../core/types/db.js';
 import { generateApiKey, hashApiKey } from '../../lib/crypto.js';
 
 export const createApiKeyService = (apiKeyRepo: ApiKeyRepository): ApiKeyService => {
@@ -22,7 +22,11 @@ export const createApiKeyService = (apiKeyRepo: ApiKeyRepository): ApiKeyService
     return apiKey;
   };
 
-  const revoke = (developerId: string, keyId: string) => apiKeyRepo.revoke(developerId, keyId);
+  const revoke = async (developerId: string, apiKey: ApiKey) => {
+    if (developerId !== apiKey.developerId) throw new InvalidApiKeyError();
+
+    return await apiKeyRepo.revoke(developerId, apiKey.id);
+  };
 
   return { generate, findByKeyHash, revoke };
 };
