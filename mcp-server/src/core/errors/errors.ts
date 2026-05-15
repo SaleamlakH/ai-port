@@ -8,6 +8,12 @@ class AiportError extends Error {
   }
 }
 
+export class InvalidTokenError extends AiportError {
+  constructor() {
+    super('INVALID_TOKEN', 'Invalid or expired token');
+  }
+}
+
 export class DeveloperNotFoundError extends AiportError {
   constructor() {
     super('DEVELOPER_NOT_FOUND', 'Invalid email or password');
