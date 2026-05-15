@@ -1,16 +1,26 @@
 class AiportError extends Error {
+  error;
+
   constructor(
     public readonly code: string,
     message: string,
+    error?: Record<string, unknown>,
   ) {
     super(message);
     this.code = code;
+    this.error = error;
   }
 }
 
 export class InvalidTokenError extends AiportError {
   constructor() {
     super('INVALID_TOKEN', 'Invalid or expired token');
+  }
+}
+
+export class BadRequestError extends AiportError {
+  constructor(error: Record<string, unknown>) {
+    super('BAD_REQUEST', 'Bad request', error);
   }
 }
 
