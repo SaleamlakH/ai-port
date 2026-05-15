@@ -32,16 +32,13 @@ const mockRepo: ApiKeyRepository = {
 
     return apiKey;
   },
-  async revoke(id) {
-    const key = testDb.find((k) => k.id === id);
-    if (!key) throw new Error(`ApiKey with id ${id} not found`);
+  async revoke(developerId, id) {
+    const key = testDb.find((k) => k.id === id && k.developerId === developerId) as ApiKey;
 
     key.revokedAt = new Date();
     return key;
   },
 };
-
-const apiKeyService = createApiKeyService(mockRepo);
 
 vi.mock('../../../lib/crypto.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../lib/crypto.js')>();
@@ -51,50 +48,61 @@ vi.mock('../../../lib/crypto.js', async (importOriginal) => {
   };
 });
 
+const apiKeyService = createApiKeyService(mockRepo);
+
 afterEach(() => {
   testDb.splice(0, testDb.length);
   vi.clearAllMocks();
 });
 
-describe('ApiKey service', () => {
-  it('generate and return raw key', async () => {
-    vi.mocked(generateApiKey).mockReturnValue('123456');
+describe('apiKey.service', () => {
+  describe('apiKey.generate', () => {
+    it('generate and return raw key', async () => {
+      vi.mocked(generateApiKey).mockReturnValue('123456');
 
-    const apiKey = await apiKeyService.generate('dev-id', 'test-key');
-    expect(apiKey).toBe('123456');
+      const apiKey = await apiKeyService.generate('dev-id', 'test-key');
+      expect(apiKey).toBe('123456');
+    });
   });
 
-  it('returns a key with give hashed key', async () => {
-    vi.mocked(generateApiKey).mockReturnValue('123456');
-    await apiKeyService.generate('dev-id', 'test-key');
+  describe('apiKey.findByKeyHash', () => {
+    it('returns a key with give hashed key', async () => {
+      mockRepo.create('dev-id', hashApiKey('123456'), 'test-key');
 
-    const key = await apiKeyService.findByKeyHash('123456');
-    expect(key.id).toBeDefined();
-    expect(key.keyHash).toBe(hashApiKey('123456'));
+      const key = await apiKeyService.findByKeyHash('123456');
+      expect(key.id).toBeDefined();
+      expect(key.keyHash).toBe(hashApiKey('123456'));
+    });
+
+    it('throws if key not exist', async () => {
+      await expect(() => apiKeyService.findByKeyHash('123456')).rejects.toThrow(InvalidApiKeyError);
+    });
+
+    it('throw error if revoked', async () => {
+      mockRepo.create('dev-id', hashApiKey('123456'), 'test-key');
+
+      const key = await apiKeyService.findByKeyHash('123456');
+      key.revokedAt = new Date();
+
+      await expect(apiKeyService.findByKeyHash('123456')).rejects.toThrow(RevokedApiKeyError);
+    });
   });
 
-  it('throws error if not exist', async () => {
-    await expect(() => apiKeyService.findByKeyHash('123456')).rejects.toThrow(InvalidApiKeyError);
-  });
+  describe('apiKey.revoke', () => {
+    it('revoked and return api key', async () => {
+      const createdKey = await mockRepo.create('dev-id', hashApiKey('123456'), 'test-key');
+      const revoked = await apiKeyService.revoke('dev-id', createdKey);
 
-  it('revoked and return api key', async () => {
-    vi.mocked(generateApiKey).mockReturnValue('123456');
-    await apiKeyService.generate('dev-id', 'test-key');
+      expect(revoked.revokedAt).toBeDefined();
+      expect(revoked.revokedAt).toBeInstanceOf(Date);
+    });
 
-    const key = await apiKeyService.findByKeyHash('123456');
-    const revoked = await apiKeyService.revoke(key.id);
+    it('throw if developer ids not match', async () => {
+      const createdKey = await mockRepo.create('dev-id', hashApiKey('123456'), 'test-key');
 
-    expect(revoked.revokedAt).toBeDefined();
-    expect(revoked.revokedAt).toBeInstanceOf(Date);
-  });
-
-  it('throw error if revoked', async () => {
-    vi.mocked(generateApiKey).mockReturnValue('123456');
-    await apiKeyService.generate('dev-id', 'test-key');
-
-    const key = await apiKeyService.findByKeyHash('123456');
-    const revoked = await apiKeyService.revoke(key.id);
-
-    await expect(() => apiKeyService.findByKeyHash('123456')).rejects.toThrow(RevokedApiKeyError);
+      await expect(apiKeyService.revoke('wrong-id', createdKey)).rejects.toThrow(
+        InvalidApiKeyError,
+      );
+    });
   });
 });
