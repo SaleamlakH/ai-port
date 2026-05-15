@@ -28,11 +28,11 @@ export interface ApiKey {
 export interface ApiKeyRepository {
   create: (developerId: string, keyHash: string, label: string) => Promise<ApiKey>;
   findByKeyHash(keyHash: string): Promise<ApiKey | null>;
-  revoke(id: string): Promise<ApiKey>;
+  revoke(developerId: string, id: string): Promise<ApiKey>;
 }
 
 export interface ApiKeyService {
   generate: (developerId: string, label: string) => Promise<string>;
   findByKeyHash: (rawKey: string) => Promise<ApiKey>;
-  revoke: (keyId: string) => Promise<ApiKey>;
+  revoke: (developerId: string, apiKey: ApiKey) => Promise<ApiKey>;
 }

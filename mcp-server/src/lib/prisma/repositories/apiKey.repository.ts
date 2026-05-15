@@ -16,14 +16,14 @@ export const prismaApiKeyRepo: ApiKeyRepository = {
   },
 
   findByKeyHash(keyHash: string) {
-    return prisma.apiKey.findUnique({
+    return prisma.apiKey.findFirst({
       where: { keyHash },
     });
   },
 
-  revoke(id: string) {
+  revoke(developerId: string, id: string) {
     return prisma.apiKey.update({
-      where: { id },
+      where: { id, developerId },
       data: { revokedAt: new Date() },
     });
   },

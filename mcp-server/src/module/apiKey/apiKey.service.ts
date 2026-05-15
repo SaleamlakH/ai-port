@@ -22,7 +22,7 @@ export const createApiKeyService = (apiKeyRepo: ApiKeyRepository): ApiKeyService
     return apiKey;
   };
 
-  const revoke = (keyId: string) => apiKeyRepo.revoke(keyId);
+  const revoke = (developerId: string, keyId: string) => apiKeyRepo.revoke(developerId, keyId);
 
   return { generate, findByKeyHash, revoke };
 };
