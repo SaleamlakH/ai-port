@@ -17,7 +17,7 @@ describe('apiAuth.middleware', () => {
     vi.mocked(service.findByKeyHash)?.mockRejectedValue(new InvalidApiKeyError());
     const apikeyAuth = createApiKeyAuthMw(service as ApiKeyService);
 
-    const req: Partial<Request> = { params: { apiKey: 'test-api-key' } };
+    const req: Partial<Request> = { body: { apiKey: 'test-api-key' } };
     const res: Partial<Response> = { status: vi.fn().mockReturnThis(), json: vi.fn() };
     const next: NextFunction = vi.fn();
 
@@ -40,13 +40,13 @@ describe('apiAuth.middleware', () => {
     vi.mocked(service.findByKeyHash)?.mockResolvedValue(apiKey);
     const apiKeyAuth = createApiKeyAuthMw(service as ApiKeyService);
 
-    const req: Partial<Request> = { params: { apiKey: rawKey }, body: {} };
+    const req: Partial<Request> = { body: { apiKey: rawKey } };
     const res: Partial<Response> = { status: vi.fn().mockReturnThis(), json: vi.fn() };
     const next: NextFunction = vi.fn();
 
     await apiKeyAuth(req as Request, res as Response, next);
 
-    expect(req.body.apiKey).toEqual({ id: apiKey.id, rawKey });
+    expect(req.body.apiKey).toEqual({ ...apiKey, rawKey });
     expect(res.status).not.toHaveBeenCalled();
     expect(res.json).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalled();
