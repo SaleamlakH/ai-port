@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import z from 'zod';
+import { BadRequestError } from '../../core/errors/errors.js';
 
 // validate email, and password
 const formSchema = z.object({
@@ -10,10 +11,7 @@ const formSchema = z.object({
 export const validateForm = (req: Request, res: Response, next: NextFunction) => {
   const result = formSchema.safeParse(req.body);
 
-  if (!result.success) {
-    res.status(400).json({ error: z.treeifyError(result.error) });
-    return;
-  }
+  if (!result.success) throw new BadRequestError(z.treeifyError(result.error));
 
   req.body = result.data;
   next();
