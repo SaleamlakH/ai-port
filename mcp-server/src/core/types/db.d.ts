@@ -36,3 +36,8 @@ export interface ApiKeyService {
   findByKeyHash: (rawKey: string) => Promise<ApiKey>;
   revoke: (developerId: string, apiKey: ApiKey) => Promise<ApiKey>;
 }
+
+export interface AuthService {
+  signup(email: string, password: string): Promise<string>;
+  login(email: string, password: string): Promise<string>;
+}
