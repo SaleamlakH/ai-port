@@ -6,7 +6,7 @@
  * keeping this service testable without a real database.
  */
 
-import { DeveloperNotFoundError } from '../../core/errors/errors.js';
+import { DeveloperAlreadyExist, DeveloperNotFoundError } from '../../core/errors/errors.js';
 import { comparePassword } from '../../lib/bcrypt.js';
 import type { DeveloperRepository } from '../../core/types/db.js';
 import { signJwt } from '../../lib/joseJwt.js';
@@ -26,8 +26,11 @@ export const createAuthService = (developerRepo: DeveloperRepository) => {
   };
 
   const signup = async (email: string, password: string) => {
-    const developer = await developerRepo.create(email, password);
-    const { password: hashedPassword, ...safeDeveloper } = developer;
+    const existingDeveloper = await developerRepo.findByEmail(email);
+    if (existingDeveloper) throw new DeveloperAlreadyExist();
+
+    const newDeveloper = await developerRepo.create(email, password);
+    const { password: hashedPassword, ...safeDeveloper } = newDeveloper;
 
     return signJwt(safeDeveloper);
   };
