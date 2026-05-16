@@ -3,7 +3,7 @@
  */
 
 import { agentRegistry, app } from './app.js';
-import { createAgentWss, handleAgentUpgrade } from './routes/agent.js';
+import { createAgentWss, handleAgentUpgrade } from './module/agent/agent.route.js';
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, (err) => {

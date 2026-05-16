@@ -7,7 +7,7 @@
  */
 
 import WebSocket, { WebSocketServer } from 'ws';
-import type { ConnectionRegistry } from '../module/agent/connections.js';
+import type { ConnectionRegistry } from './connections.js';
 import type { IncomingMessage } from 'http';
 
 export const createAgentWss = (agentRegistry: ConnectionRegistry): WebSocketServer => {
