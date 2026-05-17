@@ -9,17 +9,11 @@
 import { WebSocket } from 'ws';
 import { AgentNotConnectedError } from '../../core/errors/errors.js';
 import { randomUUID } from 'node:crypto';
-
-export interface AgentRequest {
-  tool: string;
-  params: Record<string, unknown>;
-}
-
-export interface AgentResponse {
-  success: boolean;
-  data?: unknown;
-  error?: string;
-}
+import type {
+  AgentRequest,
+  AgentResponse,
+  ConnectionRegistry,
+} from '../../core/types/agent-connection.js';
 
 interface PendingRequest {
   resolve: (value: AgentResponse) => void;
@@ -29,13 +23,6 @@ interface PendingRequest {
 interface AgentConnection {
   socket: WebSocket;
   pending: Map<string, PendingRequest>;
-}
-
-export interface ConnectionRegistry {
-  register(apiKey: string, socket: WebSocket): void;
-  unregister(apiKey: string): void;
-  send(apiKey: string, req: AgentRequest): Promise<AgentResponse>;
-  isConnected(apiKey: string): boolean;
 }
 
 export const createConnectionRegistry = (): ConnectionRegistry => {

@@ -5,7 +5,7 @@
  */
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
-import type { ConnectionRegistry } from '../agent/connections.js';
+import type { ConnectionRegistry } from '../../core/types/agent-connection.js';
 import z from 'zod';
 import {
   AgentNotConnectedError,
