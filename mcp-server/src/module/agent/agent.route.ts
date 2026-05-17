@@ -14,10 +14,10 @@ export const createAgentWss = (agentRegistry: ConnectionRegistry): WebSocketServ
   const wss = new WebSocketServer({ noServer: true });
 
   wss.on('connection', (socket: WebSocket, req: IncomingMessage) => {
-    const apiKey = extractApiKey(req.url);
+    const apiKey = (req as any).apiKey;
 
     if (!apiKey) {
-      socket.close(1008, 'Missing API Key');
+      socket.close(4001, 'Missing API Key');
       return;
     }
 
@@ -44,10 +44,4 @@ export const handleAgentUpgrade = (
   wss.handleUpgrade(req, socket, head, (ws) => {
     wss.emit('connection', ws, req);
   });
-};
-
-const extractApiKey = (url?: string): string | undefined | null => {
-  if (!url) return null;
-  const match = url.match(/^\/agent\/([^/?]+)/);
-  return match ? match[1] : null;
 };
