@@ -23,7 +23,7 @@ describe('websocket server', () => {
   it('closes the connection with status 4001 when API Key is missing', () => {
     const fakeSocket = createMockSocket();
     const registry = createConnectionRegistry();
-    const req = {} as unknown as IncomingMessage;
+    const req = { body: { apiKey: { rawKey: '' } } } as unknown as IncomingMessage;
     const wss = createAgentWss(registry);
 
     wss.emit('connection', fakeSocket, req);
@@ -36,7 +36,7 @@ describe('websocket server', () => {
 
     const registry = createConnectionRegistry();
 
-    const req = { apiKey: 'valid-api-key' } as unknown as IncomingMessage;
+    const req = { body: { apiKey: { rawKey: 'valid-api-key' } } } as unknown as IncomingMessage;
     const wss = createAgentWss(registry);
 
     wss.emit('connection', fakeSocket, req);
@@ -50,7 +50,7 @@ describe('websocket server', () => {
     const spyOnEvent = vi.spyOn(fakeSocket, 'on');
 
     const registry = createConnectionRegistry();
-    const req = { apiKey: 'valid-api-key' } as unknown as IncomingMessage;
+    const req = { body: { apiKey: { rawKey: 'valid-api-key' } } } as unknown as IncomingMessage;
     const wss = createAgentWss(registry);
 
     wss.emit('connection', fakeSocket, req);
@@ -62,7 +62,7 @@ describe('websocket server', () => {
   it('unregister client on close', () => {
     const fakeSocket = createMockSocket();
     const registry = createConnectionRegistry();
-    const req = { apiKey: 'valid-api-key' } as unknown as IncomingMessage;
+    const req = { body: { apiKey: { rawKey: 'valid-api-key' } } } as unknown as IncomingMessage;
     const wss = createAgentWss(registry);
 
     wss.emit('connection', fakeSocket, req);
@@ -75,7 +75,7 @@ describe('websocket server', () => {
   it('unregister client on error', () => {
     const fakeSocket = createMockSocket();
     const registry = createConnectionRegistry();
-    const req = { apiKey: 'valid-api-key' } as unknown as IncomingMessage;
+    const req = { body: { apiKey: { rawKey: 'valid-api-key' } } } as unknown as IncomingMessage;
     const wss = createAgentWss(registry);
 
     wss.emit('connection', fakeSocket, req);
@@ -94,8 +94,8 @@ describe('websocket server', () => {
     const spySocket2On = vi.spyOn(fakeSocket2, 'on');
 
     // Create unique request objects with different keys
-    const req1 = { apiKey: 'api-key-one' } as unknown as IncomingMessage;
-    const req2 = { apiKey: 'api-key-two' } as unknown as IncomingMessage;
+    const req1 = { body: { apiKey: { rawKey: 'api-key-one' } } } as unknown as IncomingMessage;
+    const req2 = { body: { apiKey: { rawKey: 'api-key-two' } } } as unknown as IncomingMessage;
 
     const registry = createConnectionRegistry();
     const wss = createAgentWss(registry);

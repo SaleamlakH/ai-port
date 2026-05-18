@@ -7,14 +7,14 @@
  */
 
 import WebSocket, { WebSocketServer } from 'ws';
-import type { ConnectionRegistry } from './connections.js';
+import type { ConnectionRegistry } from '../../core/types/agent-connection.js';
 import type { IncomingMessage } from 'http';
 
 export const createAgentWss = (agentRegistry: ConnectionRegistry): WebSocketServer => {
   const wss = new WebSocketServer({ noServer: true });
 
   wss.on('connection', (socket: WebSocket, req: IncomingMessage) => {
-    const apiKey = (req as any).apiKey;
+    const apiKey = (req as any).body.apiKey.rawKey;
 
     if (!apiKey) {
       socket.close(4001, 'Missing API Key');
