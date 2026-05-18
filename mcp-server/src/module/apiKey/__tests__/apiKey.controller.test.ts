@@ -16,7 +16,7 @@ afterEach(() => {
 describe('apiKey.controller', () => {
   describe('controller.generate', () => {
     it('return generated raw key', async () => {
-      const req: Partial<Request> = { body: { developerId: '1', label: 'test' } };
+      const req: Partial<Request> = { body: { developer: { id: '1' }, label: 'test' } };
       const res: Partial<Response> = { status: vi.fn().mockReturnThis(), json: vi.fn() };
 
       vi.mocked(service.generate).mockResolvedValue('generated-test-key');
