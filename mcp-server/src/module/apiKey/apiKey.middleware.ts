@@ -12,6 +12,6 @@ export const validateCreateApiKeyBody = async (req: Request, res: Response, next
 
   if (!result.success) throw new BadRequestError(z.treeifyError(result.error));
 
-  req.body = result.data;
+  req.body = { ...req.body, ...result.data };
   next();
 };
