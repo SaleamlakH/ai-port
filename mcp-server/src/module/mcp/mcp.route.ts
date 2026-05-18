@@ -5,20 +5,23 @@
  * session logic runs. Each session is keyed by a UUID.
  */
 
-import { Router } from 'express';
+import { Router, type RequestHandler } from 'express';
 import type { McpController } from './mcp.controller.js';
 
-export const createMcpRouter = (mcpController: McpController): Router => {
+export const createMcpRouter = (
+  mcpController: McpController,
+  apiKeyAuthMw: RequestHandler,
+): Router => {
   const mcpRouter = Router();
 
   // mcp client-to-server communication
-  mcpRouter.post('/mcp/:apiKey', mcpController.handlePost);
+  mcpRouter.post('/mcp/:apiKey', apiKeyAuthMw, mcpController.handlePost);
 
   // mcp server-to-client notifications via SSE
-  mcpRouter.get('/mcp/:apiKey', mcpController.handleGet);
+  mcpRouter.get('/mcp/:apiKey', apiKeyAuthMw, mcpController.handleGet);
 
   // session termination
-  mcpRouter.delete('/mcp/:apiKey', mcpController.handleDelete);
+  mcpRouter.delete('/mcp/:apiKey', apiKeyAuthMw, mcpController.handleDelete);
 
   return mcpRouter;
 };
