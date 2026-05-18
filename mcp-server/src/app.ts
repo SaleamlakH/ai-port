@@ -18,22 +18,43 @@ import { createMcpService } from './module/mcp/mcp.service.js';
 import { createInMemorySessionStore } from './module/mcp/mcp.session.js';
 import { createMcpRouter } from './module/mcp/mcp.route.js';
 import { createMcpController } from './module/mcp/mcp.controller.js';
+import { createAuthController } from './module/auth/auth.controller.js';
+import { createApiKeyAuthMw } from './middlewares/apiKeyAuth.middleware.js';
+import { createApiKeyService } from './module/apiKey/apiKey.service.js';
+import { prismaApiKeyRepo } from './lib/prisma/repositories/apiKey.repository.js';
+import { createApiKeyRouter } from './module/apiKey/apiKey.route.js';
+import { createApiKeyController } from './module/apiKey/apiKey.controller.js';
+import { createJwtAuthMw } from './middlewares/jwtAuth.middleware.js';
+import { createDeveloperService } from './module/developer/developer.service.js';
 
 export const app = express();
 app.use(express.json());
 
 export const agentRegistry = createConnectionRegistry();
 
-const authService = createAuthService(prismaDeveloperRepo);
-
-// mcp server routes
 const inMemorySession = createInMemorySessionStore();
+
+// services
+const developerService = createDeveloperService(prismaDeveloperRepo);
+const authService = createAuthService(prismaDeveloperRepo);
+const apiKeyService = createApiKeyService(prismaApiKeyRepo);
 const mcpService = createMcpService(inMemorySession, agentRegistry);
+
+// controllers
+const authController = createAuthController(authService);
+const apiKeyController = createApiKeyController(apiKeyService);
 const mcpController = createMcpController(mcpService, inMemorySession);
 
+// middlewares
+const apiKeyAuthMw = createApiKeyAuthMw(apiKeyService);
+const jwtAuthMw = createJwtAuthMw(developerService);
+
+// mcp server routes
+
 // register routs
-app.use(createMcpRouter(mcpController));
-app.use(createAuthRouter(authService));
+app.use(createMcpRouter(mcpController, apiKeyAuthMw));
+app.use(createAuthRouter(authController));
+app.use(createApiKeyRouter(apiKeyController, jwtAuthMw, apiKeyAuthMw));
 
 // global error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
