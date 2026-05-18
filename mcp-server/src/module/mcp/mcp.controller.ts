@@ -7,19 +7,17 @@ export type McpController = ReturnType<typeof createMcpController>;
 
 export const createMcpController = (mcpService: McpService, sessionStore: SessionStore) => {
   const handlePost = async (req: Request, res: Response) => {
-    const { apiKey } = req.params;
+    const apiKey = req.body.apiKey.rawKey;
 
     const sessionId = req.headers['mcp-session-id'] as string | undefined;
-    const session = mcpService.getOrCreateSession(
-      apiKey as string,
-      sessionId,
-      isInitializeRequest(req.body),
-    );
+    const session = mcpService.getOrCreateSession(apiKey, sessionId, isInitializeRequest(req.body));
 
     if (!session.server.isConnected()) {
       await session.server.connect(session.transport as any);
     }
 
+    const { apiKey: key, ...body } = req.body;
+    req.body = body;
     await session.transport.handleRequest(req, res, req.body);
   };
 
@@ -31,6 +29,8 @@ export const createMcpController = (mcpService: McpService, sessionStore: Sessio
       session.transport.close();
     });
 
+    const { apiKey, ...body } = req.body;
+    req.body = body;
     await session.transport.handleRequest(req, res);
   };
 
@@ -38,6 +38,8 @@ export const createMcpController = (mcpService: McpService, sessionStore: Sessio
     const sessionId = req.headers['mcp-session-id'] as string;
     const session = sessionStore.getOrThrow(sessionId);
 
+    const { apiKey, ...body } = req.body;
+    req.body = body;
     await session.transport.handleRequest(req, res);
   };
 
