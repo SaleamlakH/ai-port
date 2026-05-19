@@ -46,8 +46,8 @@ const apiKeyController = createApiKeyController(apiKeyService);
 const mcpController = createMcpController(mcpService, inMemorySession);
 
 // middlewares
-const apiKeyAuthMw = createApiKeyAuthMw(apiKeyService);
-const jwtAuthMw = createJwtAuthMw(developerService);
+export const apiKeyAuthMw = createApiKeyAuthMw(apiKeyService);
+export const jwtAuthMw = createJwtAuthMw(developerService);
 
 // mcp server routes
 
