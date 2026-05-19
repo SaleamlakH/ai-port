@@ -14,7 +14,7 @@ export const createJwtAuthMw = (service: DeveloperService) => {
     const developer = await service.findByEmail(payload.email);
     const { password, ...safeDeveloper } = developer;
 
-    req.body.developer = safeDeveloper;
+    req.body = { ...req.body, developer: safeDeveloper };
     next();
   };
 };
