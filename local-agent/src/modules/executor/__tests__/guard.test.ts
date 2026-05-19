@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { checkCommand } from '../guard.js';
 import type { AiportConfig } from '../../config/loader.js';
-import { GuardError } from '../../core/errors/errors.js';
+import { GuardError } from '../../../core/errors/errors.js';
 
 // Mock readline/promises so tests never block on terminal input
 vi.mock('readline/promises', () => ({

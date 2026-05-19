@@ -16,7 +16,7 @@
 
 import fs from 'fs/promises';
 import { getFileAST } from '../ast/parser.js';
-import { ReaderError } from '../core/errors/errors.js';
+import { ReaderError } from '../../core/errors/errors.js';
 import { assertValidNumber, resolveSafePath, validateRangeShape } from './utils/validate.js';
 
 export type ReadSource = 'ast' | 'range' | 'full';

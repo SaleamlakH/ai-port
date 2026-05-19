@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { runCommand } from '../runner.js';
-import { ExecutorError } from '../../core/errors/errors.js';
+import { ExecutorError } from '../../../core/errors/errors.js';
 
 describe('runCommand', () => {
   // --- stdout ---

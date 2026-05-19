@@ -12,7 +12,7 @@
 
 import path from 'path';
 import fs from 'fs/promises';
-import { ReaderError } from '../../core/errors/errors.js';
+import { ReaderError } from '../../../core/errors/errors.js';
 
 /**
  * Ensures a file path is safe and absolute.

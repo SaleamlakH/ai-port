@@ -15,7 +15,7 @@
 import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import type { AiportConfig } from '../config/loader.js';
-import { GuardError } from '../core/errors/errors.js';
+import { GuardError } from '../../core/errors/errors.js';
 
 export type GuardDecision = 'allowed' | 'blocked' | 'approved' | 'denied';
 

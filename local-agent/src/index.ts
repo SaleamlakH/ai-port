@@ -11,9 +11,9 @@
  * It will later be replaced by SSE bridge entry flow.
  */
 
-import { loadConfig } from './config/loader.js';
-import { getProjectStructure } from './fs/structure.js';
-import { getFileAST } from './ast/parser.js';
+import { loadConfig } from './modules/config/loader.js';
+import { getProjectStructure } from './modules/fs/structure.js';
+import { getFileAST } from './modules/ast/parser.js';
 
 async function main() {
   loadConfig();

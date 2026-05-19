@@ -17,7 +17,7 @@
 // they need to run a command in a different directory.
 
 import { spawn } from 'child_process';
-import { ExecutorError } from '../core/errors/errors.js';
+import { ExecutorError } from '../../core/errors/errors.js';
 
 export interface RunResult {
   command: string;
