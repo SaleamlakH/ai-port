@@ -11,7 +11,7 @@ import type { LoadedConfig } from '../config/loader.js';
 import { dispatch } from './dispatch.js';
 
 export interface BridgeClient {
-  connect(): void;
+  connect(accessToken: string): void;
   disconnect(): void;
 }
 
@@ -28,9 +28,9 @@ export const createBridgeClient = (config: LoadedConfig): BridgeClient => {
   let socket: WebSocket | null = null;
   let stopped = false;
 
-  const connect = () => {
+  const connect = (accessToken: string) => {
     stopped = false;
-    open();
+    open(accessToken);
   };
 
   const disconnect = () => {
@@ -39,9 +39,14 @@ export const createBridgeClient = (config: LoadedConfig): BridgeClient => {
     socket = null;
   };
 
-  const open = () => {
-    const wsUrl = `${config.mcpServerUrl.replace(/^http/, 'ws')}/agent/${config.apiKey}`;
-    const socket = new WebSocket(wsUrl);
+  const open = (accessToken: string) => {
+    const wsUrl = `${config.mcpServerUrl.replace(/^http/, 'ws')}/agent`;
+    socket = new WebSocket(wsUrl, {
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        'x-api-key': config.apiKey,
+      },
+    });
 
     socket.on('open', () => {
       console.log('[aiport] Connected to MCP server.');
