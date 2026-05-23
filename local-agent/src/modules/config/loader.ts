@@ -9,7 +9,7 @@ import {
   MissingLanguageError,
   MissingMcpServerUrl,
   UnsupportedLanguageError,
-} from '../core/errors/errors.js';
+} from '../../core/errors/errors.js';
 
 // config interfaces
 export interface AiportConfig {

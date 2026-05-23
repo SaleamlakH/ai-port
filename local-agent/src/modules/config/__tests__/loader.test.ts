@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadConfig } from '../loader.js';
 import path from 'path';
 import fs from 'fs';
@@ -9,11 +9,13 @@ let originalEnv: NodeJS.ProcessEnv;
 beforeEach(() => {
   originalEnv = { ...process.env };
   fs.mkdirSync(testDir, { recursive: true });
+  vi.stubEnv('AIPORT_MCP_SERVER_URL', 'http://localhost:3000/');
 });
 
 afterEach(() => {
   process.env = originalEnv;
   fs.rmSync(testDir, { recursive: true, force: true });
+  vi.unstubAllEnvs();
 });
 
 function writeConfig(data: any) {
