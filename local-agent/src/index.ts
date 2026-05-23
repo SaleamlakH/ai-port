@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Aiport Local Agent — Entry Point
  *
@@ -11,45 +13,150 @@
  * It will later be replaced by SSE bridge entry flow.
  */
 
+import { Command } from 'commander';
 import { loadConfig } from './modules/config/loader.js';
-import { getProjectStructure } from './modules/fs/structure.js';
-import { getFileAST } from './modules/ast/parser.js';
+import { loadSession, saveSession } from './utils/session-loader.js';
+import { createBridgeClient } from './modules/bridge/client.js';
 
-async function main() {
-  loadConfig();
+// load config file
+const config = loadConfig();
 
-  const args = process.argv.slice(2);
-  const command = args[0];
+// create bridge
+const wsBridge = createBridgeClient(config);
 
-  if (!command) {
-    console.log('Usage:');
-    console.log('  structure');
-    console.log('  ast <file>');
-    process.exit(0);
-  }
+// create command
+const program = new Command();
 
-  if (command === 'structure') {
-    const tree = getProjectStructure();
-    console.log(JSON.stringify(tree, null, 2));
-    return;
-  }
+program.name('aiport').description('CLI to aiport local agent').version('1.0.0');
 
-  if (command === 'ast') {
-    const filePath = args[1];
+program
+  .command('register')
+  .description('Register developer using email and password')
+  .argument('<email>', 'valid email address')
+  .argument('<password>', '8 or more char length password')
+  .action(async (email: string, password: string) => {
+    try {
+      const res = await fetch(`${config.mcpServerUrl}/signup`, {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-    if (!filePath) {
-      throw new Error('Missing file path for AST command');
+      if (!res.ok) {
+        console.error('Registration failed');
+        process.exit(1);
+      }
+
+      const { data } = await res.json();
+
+      saveSession({ accessToken: data.token });
+
+      console.log('Registered successfully');
+    } catch (error) {
+      console.log(error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('login')
+  .description('Login to aiport using email and password')
+  .argument('<email>', 'registered email address')
+  .argument('<password>', '8 or more char length password')
+  .action(async (email: string, password: string) => {
+    try {
+      const res = await fetch(`${config.mcpServerUrl}/login`, {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        console.error('Login failed');
+        process.exit(1);
+      }
+
+      const { data } = await res.json();
+
+      saveSession({ accessToken: data.token });
+
+      console.log('Logged in successfully');
+    } catch (error) {
+      console.log(error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('key')
+  .description('Manage API keys')
+  .option('-c, --create <label>', 'create new API key')
+  .option('-r, --revoke <apiKey>', 'revoke API key')
+  .action(async (options) => {
+    if ((options.create && options.revoke) || (!options.create && !options.revoke)) {
+      console.error('Provide exactly one of --create or --revoke');
+      process.exit(1);
     }
 
-    const ast = await getFileAST(filePath);
-    console.log(JSON.stringify(ast, null, 2));
-    return;
-  }
+    const session = loadSession();
+    const token = session.accessToken;
 
-  throw new Error(`Unknown command: ${command}`);
-}
+    try {
+      if (options.create) {
+        const res = await fetch(`${config.mcpServerUrl}/apiKey`, {
+          method: 'POST',
+          body: JSON.stringify({ label: options.create }),
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
-main().catch((err) => {
-  console.error('[Aiport Agent Error]', err);
+        if (!res.ok) {
+          console.error("Can't create API key");
+          process.exit(1);
+        }
+
+        const { data } = await res.json();
+        console.log('New API key:', data.apiKey);
+      }
+
+      if (options.revoke) {
+        const res = await fetch(`${config.mcpServerUrl}/apiKey`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'x-api-key': options.revoke,
+          },
+        });
+
+        if (!res.ok) {
+          console.error('Can not create API key');
+          process.exit(1);
+        }
+
+        console.log('API key revoked');
+      }
+    } catch (error) {
+      console.log(error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('connect')
+  .description('Connect to the webserver')
+  .action(async () => {
+    const session = loadSession();
+    const token = session.accessToken;
+
+    wsBridge.connect(token);
+  });
+
+try {
+  program.parse();
+} catch (error) {
+  console.error(error);
   process.exit(1);
-});
+}
