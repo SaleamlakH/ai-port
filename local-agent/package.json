@@ -12,6 +12,9 @@
     "test": "vitest",
     "format": "prettier --write"
   },
+  "bin": {
+    "ai-port": "dist/index.js"
+  },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "@types/ws": "^8.18.1",
